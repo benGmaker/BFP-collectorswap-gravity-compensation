@@ -1,0 +1,41 @@
+classdef spring
+    %UNTITLED3 Summary of this class goes here
+    %   Detailed explanation goes here
+
+    properties
+        k %stiffness [N/m]
+        x0 = [0; 0] %position base [x y]
+        x1 = [0; 0] %postion end effector 
+        L0 %initial length
+        r = [1; 0]%direction
+        L %length
+    end
+
+    methods
+        function obj = spring(k,x0,L0,r)
+            %UNTITLED3 Construct an instance of this class
+            %   Detailed explanation goes here
+            obj.k = k;
+            obj.x0 = x0;
+            obj.x1 = x0 + r*L0;
+            obj.L0 = L0;
+            obj.r = r;
+            obj.L = obj.L0;
+        end
+        
+        function L = getlength(obj)
+            L = abs(obj.x1 - obj.x0);
+            obj.L = L;
+        end
+
+        function x = elongation(obj, F)
+            obj.L = - F / obj.k + obj
+
+        end
+
+        function F = F(obj)
+            %Output spring given the elenogation of the spring
+            F = - obj.k * (obj.getlength - obj.L0);
+        end
+    end
+end
