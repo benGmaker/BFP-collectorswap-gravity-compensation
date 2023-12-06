@@ -111,8 +111,6 @@ classdef springsystem
             obj.S = (obj.h_max - obj.L0 - obj.L1 - obj.h_adjust - obj.h_mech - obj.R2); %[m] possible stroke within the construction
             obj.height_check(); %checking if the height is correct
         end
-        
-        %functie voor plotten van hoe de constructie er uit komt te zien
     end
     
  

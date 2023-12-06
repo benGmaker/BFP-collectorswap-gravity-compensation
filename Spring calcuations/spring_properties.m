@@ -8,6 +8,5 @@ h_adjust = (F1 - F2)/k1 %adjustment height
 R_o = F1/k1 %outer diameter spiral pulley
 springstroke = (fn*1e-3 - L1) %[mm] possible stroke with spring
 Buildstroke = (h_max - L_0 - L1 - h_adjust - h_mech - R_o) %[m] possible stroke within the construction
-Buildstrokeshort = (h2p) %[m] possible short stroke within the short stroke construction
 end
 
