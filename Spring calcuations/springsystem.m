@@ -11,6 +11,7 @@ classdef springsystem
         Lmax            %[m] maximal spring elongation incl L0
         S               %[m] desired / build stroke 
         springstroke    %[m] stroke possible by spring
+        max_stroke = 0  %[m] maximal stroke of the system
         R1 = 0          %[m] inner diameter pulley
         R2 = 0          %[m] outer diameter pulley 
         h_mech          %[m] height needed for construction and 
@@ -102,7 +103,7 @@ classdef springsystem
             %fn extension length [mm]
             %Fn force at max elongation [N]
             %N numbert of springs
-            obj.L0 = l0;
+            obj.L0 = l0*1e-3;
             obj.Fn_tot = Fn*n;  %effective max spring output force
             obj.k = round(obj.Fn_tot/fn*1e3);     %stiffness of spring system
             obj.R2 = obj.F1/obj.k; %outer diameter spiral pulley
@@ -110,9 +111,24 @@ classdef springsystem
             obj.springstroke = (fn*1e-3 - obj.L1); %[mm] possible stroke with spring
             obj.S = (obj.h_max - obj.L0 - obj.L1 - obj.h_adjust - obj.h_mech - obj.R2); %[m] possible stroke within the construction
             obj.height_check(); %checking if the height is correct
+            obj.max_stroke = min(obj.S, obj.springstroke);
         end
         
-        %functie voor plotten van hoe de constructie er uit komt te zien
+        function [obj, isbetter] = better_spring(obj, l0, fn, Fn, n)
+            %given new spring parameters returns the spring system with the
+            %larger maximal stroke
+            isbetter = false;
+            new_sys = obj.real_spring_properties(l0, fn, Fn, n);
+            if new_sys.max_stroke > obj.max_stroke
+                obj = new_sys;
+                display('Better spring found')
+                isbetter = true;
+            end
+            
+        end
+        
+        
+        
     end
     
  
