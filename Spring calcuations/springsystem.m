@@ -20,7 +20,8 @@ classdef springsystem
         k = 0           %[N/m] stiffness
         SR = 2          %[] spring elongation ratio
         Fn_tot          %[N] force maximal elongation spring
-        
+        name            %name of the spring used
+        n               %[] number of springs used
     end
     
     methods
