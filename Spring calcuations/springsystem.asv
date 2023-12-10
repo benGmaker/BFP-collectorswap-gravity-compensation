@@ -20,7 +20,8 @@ classdef springsystem
         k = 0           %[N/m] stiffness
         SR = 2          %[] spring elongation ratio
         Fn_tot          %[N] force maximal elongation spring
-        
+        name            %name of the spring used
+        n               %[] number of springs used
     end
     
     methods
@@ -116,6 +117,7 @@ classdef springsystem
             obj.max_stroke = min(obj.S, obj.springstroke);
         end
         
+        
         function [obj, isbetter] = higher_stroke(obj, l0, fn, Fn, n)
             %given new spring parameters returns the spring system with the
             %larger maximal stroke
@@ -143,8 +145,13 @@ classdef springsystem
                 return
             end
             
-            if obj.max_stroke > new_sys.max_stroke
-               %the new  
+            if new_sys.max_stroke < desired_stroke
+               %the new max stroke is smaller than the desired stroke
+               if new_sys.max_stroke < obj.max_stroke
+                   %the new max stroke is smaller than the maximal stroke
+                   %and the desired stroke, thus it is not better
+                   return
+               end
             end
             
             if new_sys.k < obj.k

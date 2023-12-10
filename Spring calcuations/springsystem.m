@@ -20,6 +20,7 @@ classdef springsystem
         k = 0           %[N/m] stiffness
         SR = 2          %[] spring elongation ratio
         Fn_tot          %[N] force maximal elongation spring
+        fn              %[mm] maximal extension of the spring
         name            %name of the spring used
         n               %[] number of springs used
     end
@@ -106,12 +107,27 @@ classdef springsystem
             %N numbert of springs
             obj.L0 = l0*1e-3;
             obj.Fn_tot = Fn*n;  %effective max spring output force
+            obj.fn = fn;
             obj.k = round(obj.Fn_tot/fn*1e3);     %stiffness of spring system
             if obj.R1 > 0 %computing pulley size if there is a pulley
                 obj.R2 = obj.F1/obj.k; %outer diameter spiral pulley
             end
             obj = obj.compute_lengths(); %computing other lengths
             obj.springstroke = (fn*1e-3 - obj.L1); %[mm] possible stroke with spring
+            obj.S = (obj.h_max - obj.L0 - obj.L1 - obj.h_adjust - obj.h_mech - obj.R2); %[m] possible stroke within the construction
+            obj.height_check(); %checking if the height is correct
+            obj.max_stroke = min(obj.S, obj.springstroke);
+        end
+        
+        function obj = spring_properties_for_k(obj)
+            %computes the spring properties for the stiffness the spring
+            %has
+            obj.fn = obj.Fn_tot / obj.k * 1e3; %maximal extension spring [mm]
+            if obj.R1 > 0 %computing pulley size if there is a pulley
+                obj.R2 = obj.F1/obj.k; %outer diameter spiral pulley
+            end
+            obj = obj.compute_lengths();
+            obj.springstroke = (obj.fn*1e-3 - obj.L1); %[mm] possible stroke with spring
             obj.S = (obj.h_max - obj.L0 - obj.L1 - obj.h_adjust - obj.h_mech - obj.R2); %[m] possible stroke within the construction
             obj.height_check(); %checking if the height is correct
             obj.max_stroke = min(obj.S, obj.springstroke);
