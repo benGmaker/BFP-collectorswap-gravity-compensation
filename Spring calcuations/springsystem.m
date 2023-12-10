@@ -106,7 +106,9 @@ classdef springsystem
             obj.L0 = l0*1e-3;
             obj.Fn_tot = Fn*n;  %effective max spring output force
             obj.k = round(obj.Fn_tot/fn*1e3);     %stiffness of spring system
-            obj.R2 = obj.F1/obj.k; %outer diameter spiral pulley
+            if obj.R1 > 0 %computing pulley size if there is a pulley
+                obj.R2 = obj.F1/obj.k; %outer diameter spiral pulley
+            end
             obj = obj.compute_lengths(); %computing other lengths
             obj.springstroke = (fn*1e-3 - obj.L1); %[mm] possible stroke with spring
             obj.S = (obj.h_max - obj.L0 - obj.L1 - obj.h_adjust - obj.h_mech - obj.R2); %[m] possible stroke within the construction
@@ -114,7 +116,7 @@ classdef springsystem
             obj.max_stroke = min(obj.S, obj.springstroke);
         end
         
-        function [obj, isbetter] = better_spring(obj, l0, fn, Fn, n)
+        function [obj, isbetter] = higher_stroke(obj, l0, fn, Fn, n)
             %given new spring parameters returns the spring system with the
             %larger maximal stroke
             isbetter = false;
@@ -123,12 +125,39 @@ classdef springsystem
                 obj = new_sys;
                 display('Better spring found')
                 isbetter = true;
-            end
-            
+            end 
         end
         
-        
-        
+        function [obj, isbetter] = lower_stiff(obj, l0, fn, Fn, n, desired_stroke) 
+            %given new spring parameters returns a spring system with lower
+            %stiffness and that reaches the desired stroke
+            isbetter = false;
+            new_sys = obj.real_spring_properties(l0, fn, Fn, n);
+            if new_sys.max_stroke <= 0
+                %if the spring has negative stroke it does not work
+                return 
+            end
+            if new_sys.k <= 0 
+                %if the new spring system has negative stiffness is does
+                %not work
+                return
+            end
+            
+            if new_sys.max_stroke < desired_stroke
+               %the new max stroke is smaller than the desired stroke
+               if new_sys.max_stroke < obj.max_stroke
+                   %the new max stroke is smaller than the maximal stroke
+                   %and the desired stroke, thus it is not better
+                   return
+               end
+            end
+            
+            if new_sys.k < obj.k
+                obj = new_sys;
+                display('Better spring found')
+                isbetter = true;
+            end   
+        end
     end
     
  
