@@ -27,6 +27,7 @@ classdef spiral
         x_s %position of spring
         rs %radius as a function of angle phi
         phi %input for rs
+        spring_offset %offset spring has from equilibrium possition
         
         %FORCE BALANCE
         Fm %force on the mass from the spring
@@ -98,6 +99,18 @@ classdef spiral
             
         end
         
+        function obj = linear_extend(obj, extension_angle,n_steps)
+            %extends the pulley with constant radius
+            th0 = 0; %initial maximal angle
+            step_size = extension_angle/n_steps;
+            th_extend = -[th0:step_size, th0+extension_angle]; %e
+            obj.theta = [th_extend, obj.theta]; %extending the pulley
+            
+            obj.r = [ones(length(th_extend),1)*obj.r1,obj.r]; %adding aditional radius
+            obj.x = real(cos(obj.theta).*obj.r);
+            obj.y = real(sin(obj.theta).*obj.r);
+        end
+        
         %%SYSTEM FUNCTIONS
         function obj = complete_analysis(obj, n_steps, spring_offset)
             %performs the compelte analysis
@@ -107,6 +120,7 @@ classdef spiral
         end
         
         function obj = mass_spring_movement(obj,n_steps, spring_offset)
+            obj.spring_offset = spring_offset;
             obj.x_m2 = max(obj.theta)*obj.r2; %computing max extension of the spring
             stepsize = obj.x_m2/n_steps;
             obj.x_m = -[0:stepsize:obj.x_m2]; %computing linear position of the mass
@@ -115,7 +129,7 @@ classdef spiral
             validdata = zeros(1,length(obj.x_m));
             obj.phi = -obj.x_m / (obj.r2); % [rad] computing the angles that the system will go trough during the stroke of the system
             obj.x_s(1) = obj.F0 / obj.k + spring_offset;  %initial extension spring
-            obj.rs(1) = obj.r1;
+            obj.rs(1) = obj.r2;
             for i = 2 : length(obj.phi) %starting at the second position as the first angle position is zero
                 validdata(i) = obj.phi(i) <= max(obj.theta); %if the current angle is greater than the maximal design angle the data is invalid
                 [val, idx] = min(abs(obj.theta - obj.phi(i))); %finding the nearest index to the current angle
@@ -156,11 +170,12 @@ classdef spiral
             figure()
             hold on
             title(append(obj.name, ' normalised forces in the system'))
-            x_axis = obj.phi;
+            x_axis = obj.x_m;
             plot(x_axis,obj.Fs/obj.F0) 
             plot(x_axis,obj.Fm/obj.F0)
             plot(x_axis,obj.Fres/obj.F0)
             plot(x_axis,obj.Fm_control/obj.F0) %reduced spring 
+            plot(x_axis,zeros(length(x_axis),1))
             legend('Spring force','output force','resulting force','Fres basic pulley system')
             hold off
          end
@@ -170,13 +185,14 @@ classdef spiral
             
             figure()
             hold on
-
-            plot(obj.x_m, obj.Eg)
-            plot(obj.x_m, obj.Es)
-            plot(obj.x_m, obj.Etot)
+            x_axis = obj.x_m;
+            plot(x_axis, obj.Eg)
+            plot(x_axis, obj.Es)
+            plot(x_axis, obj.Etot)
+            plot(x_axis,zeros(1,length(x_axis))) %plotting zero line
             title(append(obj.name,  ' energy versus position mass'))
             legend('gravity potential energy','spring potential energy','total potential energy')
-
+            
             hold off
         end
         
