@@ -57,12 +57,12 @@ classdef spiral
             %size of the matrices is determined by n_steps
             obj.name = 'Constant force spiral';
             stepsize = (obj.r2- obj.r1)/n_steps;
-            obj.r = [obj.r1:stepsize:obj.r2]; %computing range of r
+            obj.r = [obj.r2:-stepsize:obj.r1]; %computing range of r
             obj.S = obj.F0*obj.r2/obj.k;  %computing variabble S 
-            obj.theta =  - real( sqrt(obj.S^2 - obj.r.^4) )./ (2*(obj.r.^2)) - 0.5 *real(asin((obj.r.^2)/obj.S));
+            obj.theta =  real( sqrt(obj.S^2 - obj.r.^4) )./ (2*(obj.r.^2)) + 0.5 *real(asin((obj.r.^2)/obj.S));
             
             const = obj.theta(1); 
-            obj.theta = flip(obj.theta); %flipping the shape
+            obj.theta = (obj.theta); %flipping the shape
             obj.theta = obj.theta - const; %adding constant such that theta(1) = 0
             
             obj.x = real(cos(obj.theta).*obj.r);
@@ -75,10 +75,10 @@ classdef spiral
             stepsize = thetamax/n_steps; 
             obj.theta = [0:stepsize:thetamax]; %spiral will do one full rotation
            
-            a = obj.r2/thetamax;  %computing the slope variable such that only thetamax rotations are made
+            a = (obj.r2 -obj.r1)/thetamax;  %computing the slope variable such that only thetamax rotations are made
             
-            obj.r = a*obj.theta;
-            obj.theta = flip(obj.theta); %flipping the shape
+            obj.r = -a*obj.theta + obj.r2;
+            obj.theta = (obj.theta); %flipping the shape
             obj.x = real(cos(obj.theta).*obj.r);
             obj.y = real(sin(obj.theta).*obj.r);
         end
@@ -91,9 +91,9 @@ classdef spiral
             stepsize = thetamax/n_steps; 
             obj.theta = [0:stepsize:thetamax]; %spiral will do one full rotation
             c = cot(obj.curve_angle);
-            a = obj.r2 / exp(thetamax*c);
-            obj.r = a*exp(obj.theta*c);
-            obj.theta = flip(obj.theta); %flipping the shape
+            a = (obj.r2 -obj.r1) / exp(thetamax*c);
+            obj.r = obj.r2 - a*exp(obj.theta*c);
+            obj.theta = (obj.theta); %flipping the shape
             obj.x = real(cos(obj.theta).*obj.r);
             obj.y = real(sin(obj.theta).*obj.r);
             
@@ -113,18 +113,25 @@ classdef spiral
         
         function obj = close_shape(obj, n_steps)
             %Can close the last 179 degrees of the spiral shape
-            x_0 = obj.x(length(obj.x));
-            y_0 = obj.y(length(obj.y));
-            x_1 = obj.x(1);
-            y_1 = obj.y(1);
- 
+            x_0 = obj.x(1);
+            y_0 = obj.y(1);
+            x_1 = obj.x(length(obj.x));
+            y_1 = obj.y(length(obj.y));
+
+            %computing in cartesian coordinates linear path
+            x_fill = [x_1:(x_0 - x_1)/n_steps:x_0];
+            y_fill = [y_1:(y_0 - y_1)/n_steps:y_0];
             
-            x_fill = [x_0:(x_1 - x_0)/n_steps:x_1];
-            y_fill = [y_0:(y_1 - y_0)/n_steps:y_1];
+            %converting linear path in cylindrical coordinates
             r_fill = (x_fill.^2+y_fill.^2).^(1/2);
-            theta_fill = 2*pi + atan(y_fill./x_fill);
-            obj.r = [(r_fill(1:n_steps)), obj.r];
-            obj.theta = [(theta_fill(1:n_steps)), obj.theta];
+            theta_fill = 2*pi + atan(y_fill./x_fill); 
+            %addjusting for loop over of atan
+            theta_fill(theta_fill > 2*pi) = theta_fill(theta_fill > 2*pi) -pi; 
+            
+            %appending additional path
+            L = length(theta_fill);
+            obj.r = [obj.r,(r_fill(2:L))];
+            obj.theta = [ obj.theta,(theta_fill(2:L)),];
             
             %recomputing the x and y coordinates
             obj.x = real(cos(obj.theta).*obj.r);
