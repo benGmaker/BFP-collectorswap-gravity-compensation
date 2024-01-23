@@ -101,16 +101,35 @@ classdef spiral
         
         function obj = linear_extend(obj, extension_angle,n_steps)
             %extends the pulley with constant radius
-            th0 = 0; %initial maximal angle
+            th0 = max(obj.theta); %initial maximal angle
             step_size = extension_angle/n_steps;
-            th_extend = -[th0:step_size, th0+extension_angle]; %e
-            obj.theta = [th_extend, obj.theta]; %extending the pulley
+            th_extend = [th0 : step_size : th0+extension_angle]; %e
+            obj.theta = [flip(th_extend), obj.theta]; %extending the pulley
             
-            obj.r = [ones(length(th_extend),1)*obj.r1,obj.r]; %adding aditional radius
+            obj.r = [ones(1,length(th_extend))*min(obj.r), obj.r]; %adding aditional radius
             obj.x = real(cos(obj.theta).*obj.r);
             obj.y = real(sin(obj.theta).*obj.r);
         end
         
+        function obj = close_shape(obj, n_steps)
+            %Can close the last 179 degrees of the spiral shape
+            x_0 = obj.x(length(obj.x));
+            y_0 = obj.y(length(obj.y));
+            x_1 = obj.x(1);
+            y_1 = obj.y(1);
+ 
+            
+            x_fill = [x_0:(x_1 - x_0)/n_steps:x_1];
+            y_fill = [y_0:(y_1 - y_0)/n_steps:y_1];
+            r_fill = (x_fill.^2+y_fill.^2).^(1/2);
+            theta_fill = 2*pi + atan(y_fill./x_fill);
+            obj.r = [(r_fill(1:n_steps)), obj.r];
+            obj.theta = [(theta_fill(1:n_steps)), obj.theta];
+            
+            %recomputing the x and y coordinates
+            obj.x = real(cos(obj.theta).*obj.r);
+            obj.y = real(sin(obj.theta).*obj.r);
+        end
         %%SYSTEM FUNCTIONS
         function obj = complete_analysis(obj, n_steps, spring_offset)
             %performs the compelte analysis
@@ -175,8 +194,10 @@ classdef spiral
             plot(x_axis,obj.Fm/obj.F0)
             plot(x_axis,obj.Fres/obj.F0)
             plot(x_axis,obj.Fm_control/obj.F0) %reduced spring 
-            plot(x_axis,zeros(length(x_axis),1))
+            %plot(x_axis,zeros(length(x_axis),1))
             legend('Spring force','output force','resulting force','Fres basic pulley system')
+            xlabel('Displacement mass [mm]')
+            ylabel('Force / F0 [ ]')
             hold off
          end
         
@@ -189,10 +210,11 @@ classdef spiral
             plot(x_axis, obj.Eg)
             plot(x_axis, obj.Es)
             plot(x_axis, obj.Etot)
-            plot(x_axis,zeros(1,length(x_axis))) %plotting zero line
+            %plot(x_axis,zeros(1,length(x_axis))) %plotting zero line
             title(append(obj.name,  ' energy versus position mass'))
             legend('gravity potential energy','spring potential energy','total potential energy')
-            
+            xlabel('Displacement mass [mm]')
+            ylabel('Potential Energy [J]')
             hold off
         end
         
@@ -205,7 +227,25 @@ classdef spiral
             figure()
             plot(obj.theta,obj .r)
             title(append(obj.name, 'theta versus radius'))
-            ylabel('radius'); xlabel('theta') %here we want to see the beginning be at theta == 0 
+            ylabel('radius [mm]'); xlabel('theta [rad]') %here we want to see the beginning be at theta == 0 
+        end
+        
+        function fig = plot_force_energy(obj)
+            x_axis = obj.x_m; %choice of x_axis 
+            
+            fig = figure();
+            hold on
+            title('Resulting force and Total potential energy') 
+            plot(x_axis,obj.Fres/obj.F0)
+            yyaxis left
+            ylabel('Fres / F0 [N]') 
+            
+            yyaxis right
+            plot(x_axis, obj.Etot)
+            ylabel('Total Potential Energy [J]') 
+            
+            xlabel('Height Mass [mm]')
+            %legend('Resulting force','Total potential energy')
         end
         
         function plot_shape(obj)
@@ -213,6 +253,7 @@ classdef spiral
             hold on
             plot(obj.x, obj.y);
             title(append(obj.name, ' pulley shape'))
+            xlabel('x [mm]'); ylabel('y [mm]');
             hold off
             
         end
