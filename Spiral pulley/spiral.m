@@ -104,9 +104,9 @@ classdef spiral
             th0 = max(obj.theta); %initial maximal angle
             step_size = extension_angle/n_steps;
             th_extend = [th0 : step_size : th0+extension_angle]; %e
-            obj.theta = [flip(th_extend), obj.theta]; %extending the pulley
+            obj.theta = [obj.theta, th_extend ]; %extending the pulley
             
-            obj.r = [ones(1,length(th_extend))*min(obj.r), obj.r]; %adding aditional radius
+            obj.r = [ obj.r, ones(1,length(th_extend))*min(obj.r)]; %adding aditional radius
             obj.x = real(cos(obj.theta).*obj.r);
             obj.y = real(sin(obj.theta).*obj.r);
         end
@@ -158,7 +158,7 @@ classdef spiral
             obj.rs = zeros(1,length(obj.x_m)); %[rad] empty array for radius versus angle
             
             obj.phi = -obj.x_m / (obj.r2); % [rad] computing the angles that the system will go trough during the stroke of the system
-            obj.x_s(1) = obj.F0 *(obj.r2/obj.r1)/ obj.k + spring_offset;  %initial extension spring
+            obj.x_s(1) = obj.F0 / obj.k + spring_offset;  %initial extension spring
             obj.rs(1) = obj.r2;
             for i = 2 : length(obj.phi) %starting at the second position as the first angle position is zero
                 validdata(i) = obj.phi(i) <= max(obj.theta); %if the current angle is greater than the maximal design angle the data is invalid
@@ -246,16 +246,18 @@ classdef spiral
             
             fig = figure();
             hold on
-            title('Resulting force and Total potential energy') 
+            title(append(obj.name,' resulting force and total potential energy'))
             plot(x_axis,obj.Fres/obj.F0)
             yyaxis left
             ylabel('Fres / F0 [N]') 
+            ylim([-0.5 0.5])
             
             yyaxis right
             plot(x_axis, obj.Etot)
             ylabel('Total Potential Energy [J]') 
             
             xlabel('Height Mass [mm]')
+            xlim([-obj.r2*pi*1.5 0])
             %legend('Resulting force','Total potential energy')
         end
         
