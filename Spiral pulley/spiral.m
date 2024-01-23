@@ -146,15 +146,19 @@ classdef spiral
         end
         
         function obj = mass_spring_movement(obj,n_steps, spring_offset)
-            obj.spring_offset = spring_offset;
-            obj.x_m2 = max(obj.theta)*obj.r2; %computing max extension of the spring
+            obj.spring_offset = spring_offset; %safing the spring ofset
+            
+            %computing max extension of the spring
+            obj.x_m2 = max(obj.theta)*obj.r2; 
+            
             stepsize = obj.x_m2/n_steps;
             obj.x_m = -[0:stepsize:obj.x_m2]; %computing linear position of the mass
+            
             obj.x_s = zeros(1,length(obj.x_m)); %[m] creating empty spring position array
             obj.rs = zeros(1,length(obj.x_m)); %[rad] empty array for radius versus angle
-            validdata = zeros(1,length(obj.x_m));
+            
             obj.phi = -obj.x_m / (obj.r2); % [rad] computing the angles that the system will go trough during the stroke of the system
-            obj.x_s(1) = obj.F0 / obj.k + spring_offset;  %initial extension spring
+            obj.x_s(1) = obj.F0 *(obj.r2/obj.r1)/ obj.k + spring_offset;  %initial extension spring
             obj.rs(1) = obj.r2;
             for i = 2 : length(obj.phi) %starting at the second position as the first angle position is zero
                 validdata(i) = obj.phi(i) <= max(obj.theta); %if the current angle is greater than the maximal design angle the data is invalid
