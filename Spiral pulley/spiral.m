@@ -11,8 +11,6 @@ classdef spiral
         k;                  %[N/mm] spring stiffness
         name %name of the spiral type
         
-
-        
         %SHAPE PROPERTIES
         r;                  %[mm] radius spiral at given theta
         theta;              %[rad] angle spiral at given r
@@ -47,7 +45,7 @@ classdef spiral
     
     methods
         function obj = spiral(r1,r2,F0,k)
-            %initializing method
+            %constructing method
             obj.r1 = r1; 
             obj.r2 = r2;
             obj.F0 = F0;
@@ -313,10 +311,7 @@ classdef spiral
             xlabel('x [mm]'); ylabel('y [mm]');
             hold off
         end
-
-        
-        
-        
+   
     end
 end
 

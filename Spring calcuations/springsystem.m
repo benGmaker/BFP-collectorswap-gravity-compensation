@@ -1,61 +1,79 @@
 classdef springsystem
-    %This is a function describing the compution of a spring system and
-    %it's given height
+    %Springsystem describes a system including construction with two loading conditions F1 and F2
+    %It has functions to optimize the defining parameters for the given
+    %desired input variables
     
     properties
+        %INPUT VARIABLES
+        %input spring variables
         F1 = 2          %[N] initial loading condition (HIGH)
         F2 = 1          %[N] second loading condition (LOW)
+        SR = 2          %[] spring elongation ratio
+        S               %[m] desired / build stroke 
+        
+        %input construction
+        h_max           %[m] maximal build height
+        h_mech          %[m] height needed for construction and 
+        R1 = 0          %[m] inner diameter pulley
+       
+        %real spring input
+        name            %name of the spring used
+        n               %[] number of springs used
+        Fn_tot          %[N] force maximal elongation spring
+        fn              %[mm] maximal extension of the spring
+        
+        %RESULT
+        %general results
+        max_stroke = 0  %[m] maximal stroke of the system
+        h_adjust        %[m] height needed to achieve desired stroke & mass transfer
+        R2 = 0          %[m] outer diameter pulley 
+        
+        %spring results
+        k = 0           %[N/m] stiffness
         L0              %[m] initiall spring length
         L1              %[m] initial spring elongation (HIGH) (excl. L0)
         L2              %[m] secondary spring elongation (LOW) (excl. L0)
         Lmax            %[m] maximal spring elongation incl L0
-        S               %[m] desired / build stroke 
         springstroke    %[m] stroke possible by spring
-        max_stroke = 0  %[m] maximal stroke of the system
-        R1 = 0          %[m] inner diameter pulley
-        R2 = 0          %[m] outer diameter pulley 
-        h_mech          %[m] height needed for construction and 
-        h_adjust        %[m] height needed to achieve desired stroke & mass transfer
-        h_max           %[m] maximal build height
-        k = 0           %[N/m] stiffness
-        SR = 2          %[] spring elongation ratio
-        Fn_tot          %[N] force maximal elongation spring
-        fn              %[mm] maximal extension of the spring
-        name            %name of the spring used
-        n               %[] number of springs used
     end
     
     methods
         function obj = springsystem(F1, F2, S, h_mech, h_max, SR, R1)
-            %springsystem Construct an instance of this class
+            %Constructing method
+            %Set R1 to zero if no spiral pulley is desired in the system
             obj.F1 = F1;
             obj.F2 = F2;
             obj.S = S;
             obj.h_mech = h_mech;
             obj.h_max = h_max;
             obj.SR = SR;
-            obj.R1 = R1; %set to zero if there is no pulley in the system
+            obj.R1 = R1;
         end
       
         function obj = comp_stiffness(obj,decimals)
-            %comp_stiffness computes the lowest possible stiffness given
-            %system parameters 
-            F = ((1+1/(1-obj.SR) )*obj.F1-obj.F2); %Force 
-            d = (obj.h_max-obj.R2-obj.h_mech-obj.S/(1-obj.SR)); %Possible room for extension
-            obj.k =  round(F/d,decimals); %results is rounded   
+            %Computes the lowest possible stiffness given system parameters 
+            %the stiffnes is rounded by with n decimals
+            %Uses SR the estimate the extension of the spring
+            F = ((1+1/(1-obj.SR) )*obj.F1-obj.F2); 
+            d = (obj.h_max-obj.R2-obj.h_mech-obj.S/(1-obj.SR)); 
+            obj.k =  round(F/d,decimals); %results is rounded
         end
         
         function obj = comp_stiffnessAndPulley(obj,decimals)
             %optimizes system stiffness and pulley dimensions
-            obj = obj.comp_stiffness(decimals);
+            
+            %setup
+            obj = obj.comp_stiffness(decimals); %compute stiffness
             if obj.R1 == 0 %no inner diameter is set, meaning system has no pulley 
                 return
             end
-            for i = 1:100 %doing at most 100 iterations to find optimal dimensions
+            
+            %optimizing R2
+            for i = 1:100 %doing at most 100 itteration
                 R = obj.F1/obj.k; %computing new outer diameter
                 if abs(R - obj.R2) < 1e-5 % 
-                    %if the new value is close to previous one we have
-                    %reached an optimum
+                    %if the new value is close to previous one a optimimum
+                    %is reached
                     obj.R2 = R;
                     return
                 end
@@ -65,7 +83,7 @@ classdef springsystem
         end
         
         function obj = compute_lengths(obj)
-            %if k is known the following can be computed
+            %The lengths can be computed if the stiffness is known
             obj.h_adjust = (obj.F1 - obj.F2)/obj.k; %adjustment height
             obj.Lmax = obj.h_max - obj.R2- obj.h_mech - obj.h_adjust; %maximum length of the spring
             obj.L1 = obj.F1/obj.k; %initial elongation (without initial length)
@@ -73,6 +91,8 @@ classdef springsystem
         end
         
         function height_check(obj)
+            %Validation function to check if heights of the system match
+            %the max height defined
             heigh_sum = round(obj.R2 + obj.S + obj.L1 + obj.L0 + obj.h_adjust + obj.h_mech,4);
             if ((heigh_sum == obj.h_max)) == 0 
                 display('max height and sum of heights do not match!')  
@@ -80,7 +100,10 @@ classdef springsystem
                 display('sum of heights = ' + string(heigh_sum))
             end
         end
+        
         function obj = comp_sys(obj,decimals)
+            %Given the system parameters computes the optimal system
+            %properties
             obj = obj.comp_stiffnessAndPulley(decimals);
             obj = obj.compute_lengths();
             obj.L0 = obj.Lmax*obj.SR; %initial length spring
@@ -120,8 +143,8 @@ classdef springsystem
         end
         
         function obj = spring_properties_for_k(obj)
-            %computes the spring properties for the stiffness the spring
-            %has
+            %Computes system properties given the given stiffness of the
+            %spring
             obj.fn = obj.Fn_tot / obj.k * 1e3; %maximal extension spring [mm]
             if obj.R1 > 0 %computing pulley size if there is a pulley
                 obj.R2 = obj.F1/obj.k; %outer diameter spiral pulley
@@ -134,7 +157,7 @@ classdef springsystem
         end
         
         function [obj, isbetter] = higher_stroke(obj, l0, fn, Fn, n)
-            %given new spring parameters returns the spring system with the
+            %given new real spring parameters returns the spring system with the
             %larger maximal stroke
             isbetter = false;
             new_sys = obj.real_spring_properties(l0, fn, Fn, n);
@@ -146,7 +169,7 @@ classdef springsystem
         end
         
         function [obj, isbetter] = lower_stiff(obj, l0, fn, Fn, n, desired_stroke) 
-            %given new spring parameters returns a spring system with lower
+            %given new real spring parameters returns a spring system with lower
             %stiffness and that reaches the desired stroke
             isbetter = false;
             new_sys = obj.real_spring_properties(l0, fn, Fn, n);

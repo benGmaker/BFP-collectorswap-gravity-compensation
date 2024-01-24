@@ -1,5 +1,6 @@
 classdef negative_spring
-    %UNTITLED Summary of this class goes here
+    %Negative_spring describes a negative spring system with 4 leaf springs
+    %   Optimizes the parameters to create desired stiffness
     %   Detailed explanation goes here
     
     properties
@@ -21,6 +22,7 @@ classdef negative_spring
     
     methods
         function obj = negative_spring(E,sigma_y,t,b,n,k_des)
+            %Constructing method
             obj.E = E;
             obj.sigma_y = sigma_y;
             obj.t = t;
@@ -30,7 +32,8 @@ classdef negative_spring
         end
         
         function obj  = comp_properties(obj, k_des)
-            %computes the springs properties 
+            %Computes the desired spring properties given a desired
+            %stiffness
             obj.I = obj.t^3*obj.b/12; %[m^4]  moment of inertia leaf spring
             Length = ((44.4*obj.E*obj.I*obj.n)/k_des)^(1/3); %desired length given desired
             obj.L = round(Length,4); %ounding the result
@@ -40,7 +43,7 @@ classdef negative_spring
         end
         
         function obj = comp_stiff(obj)
-            %computes system stiffness
+            %computes system stiffness given the system parameters
             obj.k = round(44.4*obj.E*obj.I/obj.L^3 * obj.n );
         end
         
