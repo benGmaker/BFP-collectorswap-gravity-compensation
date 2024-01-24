@@ -302,14 +302,20 @@ classdef spiral
             xlim([-obj.r2*pi*1.5 0])
         end
         
-        function plot_shape(obj)
+        function fig = plot_shape(obj)
             %Plots the shape of the spiral in cartensian coordinates
-            figure()
+            fig = figure();
             hold on
             plot(obj.x, obj.y);
             title(append(obj.name, ' pulley shape'))
             xlabel('x [mm]'); ylabel('y [mm]');
-            hold off
+        end
+        
+        %OTHER FUNCTIONS
+        function save(obj,name)
+            %Saves coordinates into excel such that it can be imported
+            output = table(transpose(obj.x),transpose(obj.y)); 
+            writetable(output,name);
         end
    
     end
