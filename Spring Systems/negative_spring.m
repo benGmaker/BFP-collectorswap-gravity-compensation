@@ -11,6 +11,8 @@ classdef negative_spring
         b           %[m] Width spring
         n           %[] number of springs
         sm = 0.87   %[] Safety margin on stroke from JPE
+        thread_pitch = 0.7 %[mm\revolution] 
+        
         
         %Computed properties
         I           %[m^4] moment of inertia
@@ -18,6 +20,8 @@ classdef negative_spring
         k           %[N/m] stiffness
         uz_max      %[m] compresion in the z direction fo the leaf spring
         S           %[m] maximal stroke of the spring
+        n_rotation  %[] number the thread needs to make
+        
     end
     
     methods
@@ -39,6 +43,7 @@ classdef negative_spring
             obj.L = round(Length,4); %ounding the result
             obj = obj.comp_stiff();
             obj.uz_max = obj.sigma_y*obj.L^2/(53*obj.E*obj.t); %[m] max compression in z direction leaf spring
+            obj.n_rotation = obj.uz_max/(obj.thread_pitch*1e-3); %number of rotations
             obj = obj.comp_stroke();
         end
         
